@@ -15,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Foyer implements Serializable {
     @Id
@@ -25,5 +26,5 @@ public class Foyer implements Serializable {
     @OneToOne(mappedBy = "foyer")
     Universite universite;
     @OneToMany(mappedBy = "foyer")
-    List<Bloc> blocs= new ArrayList<>();
+    List<Bloc> blocs ;
 }

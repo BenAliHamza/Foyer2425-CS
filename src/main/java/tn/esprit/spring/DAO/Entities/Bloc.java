@@ -28,5 +28,5 @@ public class Bloc{
     Foyer foyer;
     @OneToMany(mappedBy = "bloc", fetch = FetchType.EAGER)
     @JsonIgnore
-    List<Chambre> chambres= new ArrayList<>();
+    List<Chambre> chambres ;
 }

@@ -27,7 +27,7 @@ public class Etudiant implements Serializable {
     String ecole;
     LocalDate dateNaissance;
     @ManyToMany(mappedBy = "etudiants")
-    List<Reservation> reservations= new ArrayList<>();
+    List<Reservation> reservations;
 
 
 }

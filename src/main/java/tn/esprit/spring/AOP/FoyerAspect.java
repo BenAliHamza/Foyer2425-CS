@@ -17,7 +17,7 @@ public class FoyerAspect {
     //Méthode: Advice
     @Before("execution(* tn.esprit.spring.Services..*.*(..))")
     public void method(JoinPoint jp){
-        log.info("hello "+jp.getSignature().getName());
+        log.info("method start");
     }
 
     @After("execution(* tn.esprit.spring.Services..*.add*(..))")
