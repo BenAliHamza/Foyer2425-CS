@@ -60,7 +60,6 @@ public interface BlocRepository extends JpaRepository<Bloc, Long> {
     List<Bloc> findByNomBlocLike(String nom);
 
     // 7- Tri par nomBloc par ordre alphabétique
-    //List<Bloc> findByNomBlocOrderBy(String nomB);
 
 
     // 8- Recherche par nomBloc ou capaciteBloc

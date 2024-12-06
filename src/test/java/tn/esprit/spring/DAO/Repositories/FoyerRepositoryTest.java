@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@SpringBootTest
+@SpringBootTest(properties = {"spring.profiles.active=test"})
 public class FoyerRepositoryTest {
 
     private static final Logger logger = LoggerFactory.getLogger(FoyerRepositoryTest.class);
