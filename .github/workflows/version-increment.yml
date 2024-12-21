@@ -1,0 +1,47 @@
+name: Version Increment and Build
+
+on:
+  push:
+    branches:
+      - oussama  # Replace 'main' with your branch name
+
+jobs:
+  increment_version:
+    runs-on: ubuntu-latest  # The job will run on the latest Ubuntu environment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # Checks out the code from the repository
+
+      - name: Get current version and increment
+        run: |
+          # Extract the current version from the pom.xml
+          VERSION=$(grep -oPm1 "(?<=<version>)[^<]+(?=</version>)" pom.xml)
+          echo "Current version: $VERSION"
+
+          # Extract the numeric part of the version (e.g., 1.4.8)
+          VERSION_NUMBER=$(echo $VERSION | sed -E 's/([0-9]+\.[0-9]+\.[0-9]+)-RELEASE/\1/')
+          
+          # Split the version number and increment the patch version
+          IFS='.' read -r -a VERSION_ARRAY <<< "$VERSION_NUMBER"
+          VERSION_ARRAY[2]=$((VERSION_ARRAY[2] + 1))  # Increment the patch version
+          NEW_VERSION="${VERSION_ARRAY[0]}.${VERSION_ARRAY[1]}.${VERSION_ARRAY[2]}-RELEASE"
+
+          echo "New version: $NEW_VERSION"
+
+          # Update the version in the pom.xml
+          sed -i "s#<version>$VERSION</version>#<version>$NEW_VERSION</version>#" pom.xml
+          echo "Updated version in pom.xml to $NEW_VERSION"
+
+      - name: Commit the updated version
+        run: |
+          # Configure Git user for committing changes
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+          # Add and commit the updated pom.xml file
+          git add pom.xml
+          git commit -m "Bump version to $NEW_VERSION"
+
+          # Push the changes back to the repository
+          git push
