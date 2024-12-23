@@ -15,23 +15,27 @@ jobs:
 
       - name: Get current version and increment
         run: |
-          # Get the current version using a simpler approach with `sed`
+          # Get the current version using sed and extract the version number
           VERSION=$(sed -n 's/.*<version>\([^<]*\)<\/version>.*/\1/p' pom.xml)
           echo "Current version: $VERSION"
-
-          # Check if the version contains "-RELEASE", and strip it
+          
+          # Extract version number before "-RELEASE" and ensure it is correctly split
           VERSION_NUMBER=$(echo $VERSION | sed -E 's/([0-9]+\.[0-9]+\.[0-9]+)-RELEASE/\1/')
           
           # Split the version into an array based on dots
           IFS='.' read -r -a VERSION_ARRAY <<< "$VERSION_NUMBER"
           
           # Increment the patch version
-          VERSION_ARRAY[2]=$((VERSION_ARRAY[2] + 1))
+          PATCH_VERSION=${VERSION_ARRAY[2]}
+          PATCH_VERSION=$((PATCH_VERSION + 1))
           
-          # Rebuild the version string
+          # Update the array with the incremented patch version
+          VERSION_ARRAY[2]=$PATCH_VERSION
+          
+          # Rebuild the new version string
           NEW_VERSION="${VERSION_ARRAY[0]}.${VERSION_ARRAY[1]}.${VERSION_ARRAY[2]}-RELEASE"
           
-          # Update the version in pom.xml
+          # Replace the old version with the new version in pom.xml
           sed -i "s#<version>$VERSION</version>#<version>$NEW_VERSION</version>#" pom.xml
           echo "Updated version to $NEW_VERSION"
 
@@ -41,10 +45,10 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
-          # Ensure that the repository is up-to-date before committing
+          # Ensure the repository is up to date before committing
           git pull origin hamza
 
-          # Commit changes to pom.xml
+          # Commit the changes to pom.xml
           git add pom.xml
           git commit -m "Bump version to $NEW_VERSION"
 
