@@ -1,0 +1,46 @@
+name: Version Increment and Build
+
+on:
+  push:
+    branches:
+      - hamza
+
+jobs:
+  increment_version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get current version and increment
+        run: |
+          # Get the current project version (the one under <artifactId>Foyer</artifactId>)
+          VERSION=$(grep -oPm1 "(?<=<artifactId>Foyer</artifactId>\s*<version>)[^<]+(?=</version>)" pom.xml)
+          echo "Current version: $VERSION"
+
+          # Increment the patch number (the third part of the version)
+          VERSION_NUMBER=$(echo $VERSION | sed -E 's/([0-9]+\.[0-9]+\.[0-9]+)-RELEASE/\1/')
+          IFS='.' read -r -a VERSION_ARRAY <<< "$VERSION_NUMBER"
+          VERSION_ARRAY[2]=$((VERSION_ARRAY[2] + 1))  # Increment patch version
+          NEW_VERSION="${VERSION_ARRAY[0]}.${VERSION_ARRAY[1]}.${VERSION_ARRAY[2]}"
+
+          # Update the version in pom.xml
+          sed -i "s#<version>$VERSION</version>#<version>$NEW_VERSION</version>#" pom.xml
+          echo "Updated version to $NEW_VERSION"
+
+      - name: Commit the updated version
+        run: |
+          # Set up git configuration
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+          # Ensure that the repository is up-to-date before committing
+          git pull origin hamza
+
+          # Commit changes to pom.xml
+          git add pom.xml
+          git commit -m "Bump version to $NEW_VERSION"
+
+          # Push the changes back to the same branch
+          git push origin hamza
