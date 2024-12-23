@@ -15,8 +15,14 @@ jobs:
 
       - name: Get current version and increment
         run: |
-          # Get the current version of the artifact Foyer from pom.xml
-          VERSION=$(sed -n 's#.*<artifactId>Foyer</artifactId>.*<version>\([^<]*\)</version>#\1#p' pom.xml)
+          # Extract the version of the Foyer artifact from the pom.xml file
+          VERSION=$(grep -A 1 "<artifactId>Foyer</artifactId>" pom.xml | grep "<version>" | sed 's/.*<version>\([0-9]*\.[0-9]*\.[0-9]*\)<\/version>/\1/')
+          
+          if [ -z "$VERSION" ]; then
+            echo "Error: Version for Foyer not found!"
+            exit 1
+          fi
+          
           echo "Current version: $VERSION"
           
           # Ensure we are working with the correct version format (X.Y.Z)
