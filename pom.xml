@@ -86,6 +86,15 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.14.2</version> <!-- Ensure this version is updated -->
+                <configuration>
+                    <autoLinkItems>true</autoLinkItems>
+                    <generateBackupPoms>false</generateBackupPoms>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
