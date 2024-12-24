@@ -29,5 +29,10 @@ public class Etudiant implements Serializable {
     @ManyToMany(mappedBy = "etudiants")
     List<Reservation> reservations;
 
-
+    //@RequiredArgsConstructor
+    public Etudiant(long idEtudiant, String nomEt, String prenomEt) {
+        this.idEtudiant = idEtudiant;
+        this.nomEt = nomEt;
+        this.prenomEt = prenomEt;
+    }
 }

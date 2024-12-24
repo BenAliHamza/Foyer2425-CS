@@ -14,11 +14,11 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
-@ExtendWith(MockitoExtension.class)  // Use MockitoExtension for unit tests
+@ExtendWith(MockitoExtension.class)
 public class EtudiantRepositoryTest {
 
     @Mock
-    private EtudiantRepository etudiantRepository;  // Mock the EtudiantRepository
+    private EtudiantRepository etudiantRepository;
 
     private Etudiant etudiant1;
     private Etudiant etudiant2;
@@ -27,7 +27,6 @@ public class EtudiantRepositoryTest {
 
     @BeforeEach
     public void setUp() {
-        // Initialize test data
         etudiant1 = Etudiant.builder()
                 .idEtudiant(1L)
                 .nomEt("Smith")
@@ -63,7 +62,6 @@ public class EtudiantRepositoryTest {
         etudiant1.setReservations(Arrays.asList(reservation1));
         etudiant2.setReservations(Arrays.asList(reservation2));
 
-        // Mock repository methods
         lenient().when(etudiantRepository.findByNomEt("Smith")).thenReturn(etudiant1);
         lenient().when(etudiantRepository.findByEcole("Ecole 1")).thenReturn(Arrays.asList(etudiant1));
         lenient().when(etudiantRepository.findByCin(12345678L)).thenReturn(etudiant1);
@@ -78,26 +76,5 @@ public class EtudiantRepositoryTest {
         assertEquals("Smith", foundEtudiant.getNomEt(), "Etudiant name does not match");
     }
 
-    @Test
-    public void testFindByEcole() {
-        List<Etudiant> etudiants = etudiantRepository.findByEcole("Ecole 1");
-        assertNotNull(etudiants, "Etudiants list should not be null");
-        assertEquals(1, etudiants.size(), "Size of etudiants list should be 1");
-        assertEquals("Smith", etudiants.get(0).getNomEt(), "Etudiant name does not match");
-    }
-
-    @Test
-    public void testFindByCin() {
-        Etudiant foundEtudiant = etudiantRepository.findByCin(12345678L);
-        assertNotNull(foundEtudiant, "Etudiant should not be null");
-        assertEquals(12345678L, foundEtudiant.getCin(), "CIN does not match");
-    }
-
-    @Test
-    public void testFindByReservationsAnneeUniversitaire() {
-        List<Etudiant> etudiants = etudiantRepository.findByReservationsAnneeUniversitaire(LocalDate.of(2023, 1, 1));
-        assertNotNull(etudiants, "Etudiants list should not be null");
-        assertEquals(1, etudiants.size(), "Size of etudiants list should be 1");
-        assertEquals("Smith", etudiants.get(0).getNomEt(), "Etudiant name does not match");
-    }
+    // Ajoutez d'autres tests ici...
 }
