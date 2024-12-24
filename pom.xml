@@ -14,7 +14,11 @@
     <name>Foyer</name>
     <description>Foyer</description>
     <properties>
-        <java.version>17</java.version>
+            <java.version>17</java.version>
+            <sonar.projectKey>TPFoyer</sonar.projectKey>
+            <sonar.projectName>TPFoyer</sonar.projectName>
+            <sonar.host.url>http://192.168.50.4:9000</sonar.host.url>
+            <sonar.login>sqp_6aba674b8a29fc0dbdea07d66d251020f86b714c</sonar.login>
     </properties>
     <dependencies>
         <!-- Spring Boot Dependencies -->
@@ -45,6 +49,12 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.5.0</version> <!-- Check for the latest version -->
             <scope>test</scope>
         </dependency>
 
@@ -86,6 +96,12 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.9.1.2184</version>
+            </plugin>
+
         </plugins>
     </build>
 

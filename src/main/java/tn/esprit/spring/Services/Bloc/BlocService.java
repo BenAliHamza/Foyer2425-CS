@@ -66,23 +66,20 @@ public class BlocService implements IBlocService {
 
     @Override
     public Bloc affecterChambresABloc(List<Long> numChambre, String nomBloc) {
-        //1
         Bloc b = repo.findByNomBloc(nomBloc);
         List<Chambre> chambres = new ArrayList<>();
         for (Long nu : numChambre) {
             Chambre chambre = chambreRepository.findByNumeroChambre(nu);
             chambres.add(chambre);
         }
-        // Keyword (2ème méthode)
-        //2 Parent==>Chambre  Child==> Bloc
         for (Chambre cha : chambres) {
-            //3 On affecte le child au parent
             cha.setBloc(b);
-            //4 save du parent
             chambreRepository.save(cha);
+            b.getChambres().add(cha);  // Update the list of chambres in the Bloc
         }
         return b;
     }
+
 
     @Override
     public Bloc affecterBlocAFoyer(String nomBloc, String nomFoyer) {
