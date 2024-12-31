@@ -10,7 +10,9 @@ ARG VERSION=1.4.7-RELEASE
 # Convert groupId to the path format used in Nexus (replace dots with slashes)
 RUN mkdir -p /app && \
     ARTIFACT_PATH=$(echo $GROUP_ID | tr '.' '/') && \
-    curl -f -o /app/application.jar "$NEXUS_URL$ARTIFACT_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION.jar"
+    ARTIFACT_URL="$NEXUS_URL$ARTIFACT_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION.jar" && \
+    echo "Downloading from: $ARTIFACT_URL" && \
+    curl -f -o /app/application.jar "$ARTIFACT_URL"
 
 # Step 2: Use a multi-stage build for the final image
 FROM eclipse-temurin:17-jre
