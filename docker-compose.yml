@@ -1,0 +1,48 @@
+services:
+  springboot-backend:
+    build:
+      context: .
+    ports:
+      - "8089:8089"
+    depends_on:
+      - mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/devopsExam
+      SPRING_DATASOURCE_USERNAME: devops_user
+      SPRING_DATASOURCE_PASSWORD: devops_password
+    networks:
+      - app-network
+    logging:  # Enhanced logging configuration
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: always  # Automatically restart the service on failure
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: devopsExam
+      MYSQL_USER: devops_user
+      MYSQL_PASSWORD: devops_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:  # Add health check for MySQL
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mysql-data:
+
+networks:
+  app-network:
+    driver: bridge  # Explicitly define the network driver
