@@ -5,7 +5,7 @@ FROM eclipse-temurin:17-jre AS downloader
 ARG NEXUS_URL=http://192.168.125.100:8081/repository/maven-releases/
 ARG GROUP_ID=tn.esprit.spring
 ARG ARTIFACT_ID=Foyer
-ARG VERSION=1.4.9-RELEASE
+ARG VERSION=1.4.25-RELEASE
 
 # Convert groupId to the path format used in Nexus (replace dots with slashes)
 RUN mkdir -p /app && \
