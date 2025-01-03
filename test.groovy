@@ -13,6 +13,7 @@ pipeline {
         DOCKER_COMPOSE_FILE = "docker-compose.yml" // Update if your file has a different name
         SERVICE_NAME = "springboot-backend"       // Name of the service to build
         IMAGE_NAME = "hamzabenali33/springboot-backend" // Replace with your Docker Hub repository
+        NEXUS_DOCKERFILE = "Dockerfile.nexus"
         IMAGE_VERSION = "" // Placeholder for dynamically generated version
         DOCKER_CREDENTIALS_ID = "docker-hub-credentials-id"      // Set up Docker Hub credentials in Jenkins
     }
@@ -202,6 +203,21 @@ pipeline {
                 }
             }
         }
+
+        stage('Build Runtime Image') {
+            steps {
+                script {
+                    echo "Building the runtime image from Nexus JAR using Dockerfile.nexus..."
+                    // Build the Docker image with the "latest" tag
+                    sh "docker build -f Dockerfile -t ${IMAGE_NAME}:latest ."
+                }
+            }
+        }
+
+
+
+
+
         stage('Deploy Application') {
             steps {
                 script {
@@ -215,7 +231,6 @@ pipeline {
 
                     // Update the docker-compose.yml with the new image version
                     sh """
-                                sed -i 's|image:.*|image: ${IMAGE_NAME}:${IMAGE_VERSION}|' ${DOCKER_COMPOSE_FILE}
                                 docker-compose -f ${DOCKER_COMPOSE_FILE} pull
                                 docker-compose -f ${DOCKER_COMPOSE_FILE} up -d
                                 """
