@@ -1,0 +1,32 @@
+# Dockerfile.build
+
+# Step 1: Use Maven image to build the application
+FROM maven:3.8.4-openjdk-17 AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Copy pom.xml and source code
+COPY pom.xml .
+COPY src ./src
+
+# Build the application (skip tests)
+RUN mvn clean install -DskipTests
+
+# Step 2: Create the final image that includes the JAR
+FROM eclipse-temurin:17-jre AS final-build
+
+# Set working directory for the final image
+WORKDIR /app
+
+# Copy the JAR from the build stage
+COPY --from=builder /app/target/your-app.jar /app/application.jar
+
+# Set permissions for the JAR
+RUN chown root:root /app/application.jar && chmod 755 /app/application.jar
+
+# Expose the port
+EXPOSE 8089
+
+# Define the entrypoint
+ENTRYPOINT ["java", "-jar", "/app/application.jar"]

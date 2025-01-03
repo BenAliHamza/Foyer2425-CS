@@ -202,7 +202,6 @@ pipeline {
                 }
             }
         }
-
         stage('Deploy Application') {
             steps {
                 script {
@@ -224,6 +223,7 @@ pipeline {
                 }
             }
         }
+
     }
 
     post {

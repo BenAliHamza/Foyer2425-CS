@@ -1,0 +1,38 @@
+# Dockerfile.nexus
+
+# Step 1: Use a lightweight base image for downloading the JAR from Nexus
+FROM eclipse-temurin:17-jre AS downloader
+
+# Define Nexus repository and artifact details
+ARG NEXUS_URL=http://192.168.125.100:8081/repository/maven-releases/
+ARG GROUP_ID=tn.esprit.spring
+ARG ARTIFACT_ID=Foyer
+ARG VERSION  # Dynamic version passed at build time
+
+# Convert groupId to the path format used in Nexus (replace dots with slashes)
+RUN mkdir -p /app && \
+    ARTIFACT_PATH=$(echo $GROUP_ID | tr '.' '/') && \
+    ARTIFACT_URL="$NEXUS_URL$ARTIFACT_PATH/$ARTIFACT_ID/$VERSION/$ARTIFACT_ID-$VERSION.jar" && \
+    echo "Downloading from: $ARTIFACT_URL" && \
+    curl -f -o /app/application.jar "$ARTIFACT_URL"
+
+# Step 2: Create the final image to run the application
+FROM eclipse-temurin:17-jre
+
+# Set a non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Copy the downloaded JAR
+COPY --from=downloader /app/application.jar /app/application.jar
+
+# Set permissions for the JAR
+RUN chown appuser:appuser /app/application.jar && chmod 755 /app/application.jar
+
+# Switch to non-root user for security
+USER appuser
+
+# Expose the port
+EXPOSE 8089
+
+# Define the entrypoint
+ENTRYPOINT ["java", "-jar", "/app/application.jar"]
