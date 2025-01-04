@@ -20,4 +20,4 @@ COPY --from=downloader /app/application.jar /app/application.jar
 
 # Expose the port and set the entrypoint
 EXPOSE 8089
-ENTRYPOINT ["java", "-jar", "/app/application.jar"86
+ENTRYPOINT ["java", "-jar", "/app/application.jar"]
