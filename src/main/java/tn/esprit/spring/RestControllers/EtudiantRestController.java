@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("etudiant")
-@CrossOrigin(origins = "http://192.168.125.100:4200") // Replace with your Angular app's URL
+@CrossOrigin(origins = "*")
 
 @AllArgsConstructor
 public class EtudiantRestController {
