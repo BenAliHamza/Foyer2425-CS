@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("foyer")
+@CrossOrigin(origins = "http://192.168.125.100:4200") // Replace with your Angular app's URL
 @AllArgsConstructor
 public class FoyerRestController {
     IFoyerService service;
