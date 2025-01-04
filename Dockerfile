@@ -5,7 +5,7 @@ FROM eclipse-temurin:17-jre AS downloader
 ARG NEXUS_URL=http://192.168.50.4:8081/repository/maven-releases/
 ARG GROUP_ID=tn.esprit
 ARG ARTIFACT_ID=Foyer
-ARG VERSION=1.9.4-RELEASE
+ARG VERSION=1.9.6-RELEASE
 
 # Convert groupId to the path format used in Nexus (replace dots with slashes)
 RUN mkdir -p /app
@@ -20,4 +20,4 @@ COPY --from=downloader /app/application.jar /app/application.jar
 
 # Expose the port and set the entrypoint
 EXPOSE 8089
-ENTRYPOINT ["java", "-jar", "/app/application.jar"]
+ENTRYPOINT ["java", "-jar", "/app/application.jar"86
