@@ -16,25 +16,45 @@ pipeline {
         NEXUS_DOCKERFILE = "Dockerfile.nexus"
         IMAGE_VERSION = "" // Placeholder for dynamically generated version
         DOCKER_CREDENTIALS_ID = "docker-hub-credentials-id"      // Set up Docker Hub credentials in Jenkins
+        FRONTEND_CONTAINER = 'd6e0a042a444' // Container ID for the front-end service
+        NEXUS_CONTAINER = 'f2b356302285'
+        SONARQUBE_CONTAINER = '69fcede98a6a'
+        GRAFANA_CONTAINER = '23f581bfff4e'
+        PROMETHEUS_CONTAINER = 'b4b2abae9993'
     }
 
     stages {
         stage('Clean Workspace') {
             steps {
-                echo "\u001B[34mCleaning workspace...\u001B[0m" // Blue log
-                cleanWs()
+                script {
+                    def workspaceCleaned = false
+                    try {
+                        echo "\u001B[34mStarting workspace cleanup...\u001B[0m" // Blue log
+                        cleanWs()
+                        workspaceCleaned = true
+                        echo "\u001B[32mWorkspace cleanup completed successfully.\u001B[0m" // Green log
+                    } catch (Exception e) {
+                        echo "\u001B[31mError during workspace cleanup: ${e.getMessage()}\u001B[0m" // Red log
+                        currentBuild.result = 'FAILURE'
+                        throw e
+                    } finally {
+                        if (!workspaceCleaned) {
+                            echo "\u001B[33mWorkspace cleanup was not completed.\u001B[0m" // Yellow log
+                        }
+                    }
+                }
             }
         }
+
 
         stage('Start Nexus Container') {
             steps {
                 script {
-                    def nexusContainer = 'f2b356302285'
                     echo "Checking Nexus container status..."
-                    def nexusStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${nexusContainer}", returnStdout: true).trim()
+                    def nexusStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${NEXUS_CONTAINER}", returnStdout: true).trim()
                     if (nexusStatus != 'true') {
                         echo "Nexus is not running. Starting the container..."
-                        sh "docker start ${nexusContainer}"
+                        sh "docker start ${NEXUS_CONTAINER}"
                     } else {
                         echo "Nexus is already running."
                     }
@@ -46,27 +66,34 @@ pipeline {
             steps {
                 script {
                     def sonarqubeContainer = '69fcede98a6a'
-                    echo "Checking SonarQube container status..."
-                    def sonarqubeStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${sonarqubeContainer}", returnStdout: true).trim()
-                    if (sonarqubeStatus != 'true') {
-                        echo "SonarQube is not running. Starting the container..."
-                        sh "docker start ${sonarqubeContainer}"
-                    } else {
-                        echo "SonarQube is already running."
+                    echo "\u001B[34mChecking SonarQube container status...\u001B[0m" // Blue log
+                    try {
+                        def sonarqubeStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${sonarqubeContainer}", returnStdout: true).trim()
+                        if (sonarqubeStatus == 'true') {
+                            echo "\u001B[32mSonarQube container is already running.\u001B[0m" // Green log
+                        } else {
+                            echo "\u001B[33mSonarQube is not running. Attempting to start the container...\u001B[0m" // Yellow log
+                            sh "docker start ${sonarqubeContainer}"
+                            echo "\u001B[32mSonarQube container started successfully.\u001B[0m" // Green log
+                        }
+                    } catch (Exception e) {
+                        echo "\u001B[31mFailed to check or start SonarQube container: ${e.getMessage()}\u001B[0m" // Red log
+                        currentBuild.result = 'FAILURE'
+                        throw e
                     }
                 }
             }
         }
 
+
         stage('Start Grafana Container') {
             steps {
                 script {
-                    def grafanaContainer = '23f581bfff4e'
                     echo "Checking Grafana container status..."
-                    def grafanaStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${grafanaContainer}", returnStdout: true).trim()
+                    def grafanaStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${GRAFANA_CONTAINER}", returnStdout: true).trim()
                     if (grafanaStatus != 'true') {
                         echo "Grafana is not running. Starting the container..."
-                        sh "docker start ${grafanaContainer}"
+                        sh "docker start ${GRAFANA_CONTAINER}"
                     } else {
                         echo "Grafana is already running."
                     }
@@ -77,12 +104,11 @@ pipeline {
         stage('Start Prometheus Container') {
             steps {
                 script {
-                    def prometheusContainer = 'b4b2abae9993'
                     echo "Checking Prometheus container status..."
-                    def prometheusStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${prometheusContainer}", returnStdout: true).trim()
+                    def prometheusStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${PROMETHEUS_CONTAINER}", returnStdout: true).trim()
                     if (prometheusStatus != 'true') {
                         echo "Prometheus is not running. Starting the container..."
-                        sh "docker start ${prometheusContainer}"
+                        sh "docker start ${PROMETHEUS_CONTAINER}"
                     } else {
                         echo "Prometheus is already running."
                     }
@@ -116,6 +142,7 @@ pipeline {
 
                     // Update the pom.xml with the new version
                     sh "mvn versions:set -DnewVersion=${newVersion} -DgenerateBackupPoms=false"
+
                     // Update the environment variable
                     IMAGE_VERSION = newVersion
 
@@ -175,11 +202,15 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('SonarQube Analysis and Jacoco') {
             steps {
-                echo "\u001B[36mRunning SonarQube analysis...\u001B[0m" // Cyan log
+                echo "\u001B[36mRunning SonarQube analysis with JaCoCo coverage...\u001B[0m" // Cyan log
                 withSonarQubeEnv('SonarQube') {
-                    sh "mvn sonar:sonar -Dsonar.login=${SONAR_TOKEN}"
+                    sh """
+                        mvn clean verify sonar:sonar \
+                        -Dsonar.login=${SONAR_TOKEN} \
+                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                    """
                 }
             }
         }
@@ -202,31 +233,25 @@ pipeline {
             }
         }
 
-        // Docker login step before pushing image
         stage('Docker Login') {
             steps {
                 script {
                     echo "Logging in to Docker Hub..."
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials-id', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh '''
-                                docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
-                            '''
+                            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
+                        '''
                     }
                 }
             }
         }
-
 
         stage('Push Docker Image') {
             steps {
                 script {
                     echo "Pushing the Docker image to Docker Hub..."
                     try {
-                        echo "Using Docker Hub credentials to push the image..."
-                        echo "${IMAGE_NAME}:${IMAGE_VERSION}"
                         sh "docker push ${IMAGE_NAME}:${IMAGE_VERSION}"
-
-
                     } catch (Exception e) {
                         echo "Docker push failed with error: ${e.getMessage()}"
                         currentBuild.result = 'FAILURE'
@@ -241,7 +266,6 @@ pipeline {
                 script {
                     echo "Cleaning old Docker images for hamzabenali33/springboot-backend..."
 
-                    // Stop and remove any container using the old image
                     def containerId = sh(script: "docker ps -q -f ancestor=${IMAGE_NAME}", returnStdout: true).trim()
                     if (containerId) {
                         echo "Stopping container ${containerId}..."
@@ -250,7 +274,6 @@ pipeline {
                         sh "docker rm ${containerId}"
                     }
 
-                    // Find and remove Docker images with the matching name
                     sh """
                         docker images | grep "${IMAGE_NAME}" | awk '{print \$3}' | xargs -r docker rmi -f
                     """
@@ -259,60 +282,46 @@ pipeline {
             }
         }
 
-
-
         stage('Build Runtime Image') {
             steps {
                 script {
                     echo "Building the runtime image from Nexus JAR using Dockerfile.nexus..."
-                    // Build the Docker image with the "latest" tag
                     sh "docker build -f Dockerfile -t ${IMAGE_NAME}:latest ."
                 }
             }
         }
 
-
-
-
-
         stage('Deploy Application') {
             steps {
                 script {
-
                     echo "Deploying the application using the updated Docker image..."
 
-                    // Stop and remove existing containers
-                    sh """
-                                docker-compose -f ${DOCKER_COMPOSE_FILE} down
-                                """
+                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down"
 
-                    // Update the docker-compose.yml with the new image version
                     sh """
-                                docker-compose -f ${DOCKER_COMPOSE_FILE} pull
-                                docker-compose -f ${DOCKER_COMPOSE_FILE} up -d
-                                """
-
+                        docker-compose -f ${DOCKER_COMPOSE_FILE} pull
+                        docker-compose -f ${DOCKER_COMPOSE_FILE} up -d
+                    """
                 }
             }
         }
+
         stage('Run Front End') {
             steps {
                 script {
                     echo 'Checking if the front-end container is running...'
 
-                    def containerId = 'd6e0a042a444'
-                    def containerStatus = sh(script: "docker ps -q -f id=${containerId}", returnStdout: true).trim()
+                    def containerStatus = sh(script: "docker ps -q -f id=${FRONTEND_CONTAINER}", returnStdout: true).trim()
 
                     if (containerStatus) {
-                        echo "Container ${containerId} is already running."
+                        echo "Container ${FRONTEND_CONTAINER} is already running."
                     } else {
-                        echo "Container ${containerId} is not running. Starting it..."
-                        sh "docker start ${containerId}"
+                        echo "Container ${FRONTEND_CONTAINER} is not running. Starting it..."
+                        sh "docker start ${FRONTEND_CONTAINER}"
                     }
                 }
             }
         }
-
     }
 
     post {
