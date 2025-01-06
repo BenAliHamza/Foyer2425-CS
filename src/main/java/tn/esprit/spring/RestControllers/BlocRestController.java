@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("bloc")
+@CrossOrigin(origins ="*")
 @AllArgsConstructor
 public class BlocRestController {
     IBlocService service;
