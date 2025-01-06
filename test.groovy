@@ -26,16 +26,10 @@ pipeline {
             }
         }
 
-        stage('Start Nexus and SonarQube Containers') {
+        stage('Start Nexus Container') {
             steps {
                 script {
-                    // Nexus Container ID
                     def nexusContainer = 'f2b356302285'
-
-                    // SonarQube Container ID
-                    def sonarqubeContainer = '69fcede98a6a'
-
-                    // Start Nexus if not running
                     echo "Checking Nexus container status..."
                     def nexusStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${nexusContainer}", returnStdout: true).trim()
                     if (nexusStatus != 'true') {
@@ -44,8 +38,14 @@ pipeline {
                     } else {
                         echo "Nexus is already running."
                     }
+                }
+            }
+        }
 
-                    // Start SonarQube if not running
+        stage('Start SonarQube Container') {
+            steps {
+                script {
+                    def sonarqubeContainer = '69fcede98a6a'
                     echo "Checking SonarQube container status..."
                     def sonarqubeStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${sonarqubeContainer}", returnStdout: true).trim()
                     if (sonarqubeStatus != 'true') {
@@ -53,6 +53,38 @@ pipeline {
                         sh "docker start ${sonarqubeContainer}"
                     } else {
                         echo "SonarQube is already running."
+                    }
+                }
+            }
+        }
+
+        stage('Start Grafana Container') {
+            steps {
+                script {
+                    def grafanaContainer = '23f581bfff4e'
+                    echo "Checking Grafana container status..."
+                    def grafanaStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${grafanaContainer}", returnStdout: true).trim()
+                    if (grafanaStatus != 'true') {
+                        echo "Grafana is not running. Starting the container..."
+                        sh "docker start ${grafanaContainer}"
+                    } else {
+                        echo "Grafana is already running."
+                    }
+                }
+            }
+        }
+
+        stage('Start Prometheus Container') {
+            steps {
+                script {
+                    def prometheusContainer = 'b4b2abae9993'
+                    echo "Checking Prometheus container status..."
+                    def prometheusStatus = sh(script: "docker inspect -f '{{.State.Running}}' ${prometheusContainer}", returnStdout: true).trim()
+                    if (prometheusStatus != 'true') {
+                        echo "Prometheus is not running. Starting the container..."
+                        sh "docker start ${prometheusContainer}"
+                    } else {
+                        echo "Prometheus is already running."
                     }
                 }
             }
@@ -204,6 +236,31 @@ pipeline {
             }
         }
 
+        stage('Clean Old Runtime Images') {
+            steps {
+                script {
+                    echo "Cleaning old Docker images for hamzabenali33/springboot-backend..."
+
+                    // Stop and remove any container using the old image
+                    def containerId = sh(script: "docker ps -q -f ancestor=${IMAGE_NAME}", returnStdout: true).trim()
+                    if (containerId) {
+                        echo "Stopping container ${containerId}..."
+                        sh "docker stop ${containerId}"
+                        echo "Removing container ${containerId}..."
+                        sh "docker rm ${containerId}"
+                    }
+
+                    // Find and remove Docker images with the matching name
+                    sh """
+                        docker images | grep "${IMAGE_NAME}" | awk '{print \$3}' | xargs -r docker rmi -f
+                    """
+                    echo "Old images cleaned successfully."
+                }
+            }
+        }
+
+
+
         stage('Build Runtime Image') {
             steps {
                 script {
@@ -235,6 +292,23 @@ pipeline {
                                 docker-compose -f ${DOCKER_COMPOSE_FILE} up -d
                                 """
 
+                }
+            }
+        }
+        stage('Run Front End') {
+            steps {
+                script {
+                    echo 'Checking if the front-end container is running...'
+
+                    def containerId = 'd6e0a042a444'
+                    def containerStatus = sh(script: "docker ps -q -f id=${containerId}", returnStdout: true).trim()
+
+                    if (containerStatus) {
+                        echo "Container ${containerId} is already running."
+                    } else {
+                        echo "Container ${containerId} is not running. Starting it..."
+                        sh "docker start ${containerId}"
+                    }
                 }
             }
         }
