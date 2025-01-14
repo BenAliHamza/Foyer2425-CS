@@ -1,137 +1,152 @@
-//package tn.esprit.spring.RestControllers;
-//
-//import static org.mockito.Mockito.*;
-//import static org.junit.jupiter.api.Assertions.*;
-//
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.*;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//import tn.esprit.spring.DAO.Entities.Etudiant;
-//import tn.esprit.spring.DAO.Entities.Reservation;
-//import tn.esprit.spring.Services.Etudiant.IEtudiantService;
-//
-//import java.time.LocalDate;
-//import java.util.Arrays;
-//import java.util.List;
-//
-//public class EtudiantRestControllerTest {
-//
-//    private static final Logger logger = LoggerFactory.getLogger(EtudiantRestControllerTest.class);
-//
-//    @Mock
-//    private IEtudiantService etudiantService;
-//
-//    @InjectMocks
-//    private EtudiantRestController etudiantRestController;
-//
-//    private Etudiant etudiant;
-//    private Reservation reservation;
-//
-//    @BeforeEach
-//    public void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//        etudiant = Etudiant.builder()
-//                .idEtudiant(1L)
-//                .nomEt("John")
-//                .prenomEt("Doe")
-//                .cin(12345678L)
-//                .ecole("ESPRIT")
-//                .dateNaissance(LocalDate.of(2000, 1, 1))
-//                .build();
-//
-//        reservation = Reservation.builder()
-//                .idReservation("R1")
-//                .anneeUniversitaire(LocalDate.of(2023, 9, 1))
-//                .estValide(true)
-//                .etudiants(Arrays.asList(etudiant))
-//                .build();
-//    }
-//
-//    @Test
-//    public void testAddOrUpdate() {
-//        logger.info("\u001B[32mTesting addOrUpdate() method\u001B[0m");
-//
-//        when(etudiantService.addOrUpdate(any(Etudiant.class))).thenReturn(etudiant);
-//
-//        Etudiant result = etudiantRestController.addOrUpdate(etudiant);
-//
-//        assertNotNull(result);
-//        assertEquals("John", result.getNomEt());
-//        assertEquals("Doe", result.getPrenomEt());
-//    }
-//
-//    @Test
-//    public void testFindAll() {
-//        logger.info("\u001B[36mTesting findAll() method\u001B[0m");
-//
-//        List<Etudiant> etudiants = Arrays.asList(etudiant);
-//        when(etudiantService.findAll()).thenReturn(etudiants);
-//
-//        List<Etudiant> result = etudiantRestController.findAll();
-//
-//        assertNotNull(result);
-//        assertEquals(1, result.size());
-//        assertTrue(result.contains(etudiant));
-//    }
-//
-//    @Test
-//    public void testFindById() {
-//        logger.info("\u001B[34mTesting findById() method\u001B[0m");
-//
-//        when(etudiantService.findById(1L)).thenReturn(etudiant);
-//
-//        Etudiant result = etudiantRestController.findById(1L);
-//
-//        assertNotNull(result);
-//        assertEquals("John", result.getNomEt());
-//    }
-//
-//    @Test
-//    public void testDelete() {
-//        logger.info("\u001B[31mTesting delete() method\u001B[0m");
-//
-//        doNothing().when(etudiantService).delete(any(Etudiant.class));
-//
-//        etudiantRestController.delete(etudiant);
-//
-//        verify(etudiantService, times(1)).delete(etudiant);
-//    }
-//
-//    @Test
-//    public void testDeleteById() {
-//        logger.info("\u001B[33mTesting deleteById() method\u001B[0m");
-//
-//        doNothing().when(etudiantService).deleteById(1L);
-//
-//        etudiantRestController.deleteById(1L);
-//
-//        verify(etudiantService, times(1)).deleteById(1L);
-//    }
-//
-//    @Test
-//    public void testAffecterReservationAEtudiant() {
-//        logger.info("\u001B[35mTesting affecterReservationAEtudiant() method\u001B[0m");
-//
-//        when(etudiantService.affecterReservationAEtudiant(1L, "R1")).thenReturn(reservation);
-//
-//        Reservation result = etudiantRestController.affecterReservationAEtudiant(1L, "R1");
-//
-//        assertNotNull(result);
-//        assertEquals("R1", result.getIdReservation());
-//    }
-//
-//    @Test
-//    public void testRetirerReservationDeEtudiant() {
-//        logger.info("\u001B[37mTesting retirerReservationDeEtudiant() method\u001B[0m");
-//
-//        when(etudiantService.retirerReservationDeEtudiant(1L, "R1")).thenReturn(reservation);
-//
-//        Reservation result = etudiantRestController.retirerReservationDeEtudiant(1L, "R1");
-//
-//        assertNotNull(result);
-//        assertEquals("R1", result.getIdReservation());
-//    }
-//}
-//
+package tn.esprit.spring.RestControllers;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import tn.esprit.spring.DAO.Entities.Etudiant;
+import tn.esprit.spring.Services.Etudiant.IEtudiantService;
+
+import java.util.Collections;
+import java.util.List;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@ExtendWith(SpringExtension.class)
+@WebMvcTest(EtudiantRestController.class)
+class EtudiantRestControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private IEtudiantService etudiantService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Test
+    void testAddOrUpdate() throws Exception {
+        // Arrange
+        Etudiant etudiant = new Etudiant();
+        etudiant.setIdEtudiant(1L);
+        etudiant.setNomEt("Doe");
+        etudiant.setPrenomEt("John");
+
+        Mockito.when(etudiantService.addOrUpdate(Mockito.any(Etudiant.class))).thenReturn(etudiant);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.post("/etudiant/addOrUpdate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(etudiant)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.idEtudiant").value(1L))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.nomEt").value("Doe"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.prenomEt").value("John"));
+    }
+
+    @Test
+    void testFindAll() throws Exception {
+        // Arrange
+        Etudiant etudiant = new Etudiant();
+        etudiant.setIdEtudiant(1L);
+        etudiant.setNomEt("Doe");
+        etudiant.setPrenomEt("John");
+
+        List<Etudiant> etudiants = Collections.singletonList(etudiant);
+        Mockito.when(etudiantService.findAll()).thenReturn(etudiants);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.get("/etudiant/findAll")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].idEtudiant").value(1L))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].nomEt").value("Doe"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].prenomEt").value("John"));
+    }
+
+    @Test
+    void testFindById() throws Exception {
+        // Arrange
+        Etudiant etudiant = new Etudiant();
+        etudiant.setIdEtudiant(1L);
+        etudiant.setNomEt("Doe");
+        etudiant.setPrenomEt("John");
+
+        Mockito.when(etudiantService.findById(1L)).thenReturn(etudiant);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.get("/etudiant/findById")
+                        .param("id", "1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.idEtudiant").value(1L))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.nomEt").value("Doe"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.prenomEt").value("John"));
+    }
+
+    @Test
+    void testDelete() throws Exception {
+        // Arrange
+        Etudiant etudiant = new Etudiant();
+        etudiant.setIdEtudiant(1L);
+        etudiant.setNomEt("Doe");
+        etudiant.setPrenomEt("John");
+
+        Mockito.doNothing().when(etudiantService).delete(Mockito.any(Etudiant.class));
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.delete("/etudiant/delete")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(etudiant)))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testDeleteById() throws Exception {
+        // Arrange
+        Mockito.doNothing().when(etudiantService).deleteById(1L);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.delete("/etudiant/deleteById")
+                        .param("id", "1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testSelectJPQL() throws Exception {
+        // Arrange
+        Etudiant etudiant = new Etudiant();
+        etudiant.setIdEtudiant(1L);
+        etudiant.setNomEt("Doe");
+        etudiant.setPrenomEt("John");
+
+        List<Etudiant> etudiants = Collections.singletonList(etudiant);
+        Mockito.when(etudiantService.selectJPQL("Doe")).thenReturn(etudiants);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.get("/etudiant/selectJPQL")
+                        .param("nom", "Doe")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].idEtudiant").value(1L))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].nomEt").value("Doe"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].prenomEt").value("John"));
+    }
+}
