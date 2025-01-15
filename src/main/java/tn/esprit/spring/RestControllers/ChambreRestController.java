@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("chambre")
+@CrossOrigin(origins ="*")
 @AllArgsConstructor
 public class ChambreRestController {
     IChambreService service;

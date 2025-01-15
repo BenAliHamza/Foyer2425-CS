@@ -1,4 +1,4 @@
-package tn.esprit.spring.services;
+package tn.esprit.spring.Service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

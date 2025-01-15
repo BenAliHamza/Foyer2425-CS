@@ -1,4 +1,4 @@
-package tn.esprit.spring.services;
+package tn.esprit.spring.Service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,7 +51,7 @@ class EtudiantServiceTest {
         when(etudiantRepository.save(etudiant)).thenReturn(etudiant);
 
         doNothing().when(emailService).sendEmail(anyString(), anyString(), anyString());
-        
+
         // Act
         Etudiant result = etudiantService.addOrUpdate(etudiant);
 

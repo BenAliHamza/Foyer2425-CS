@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("reservation")
+@CrossOrigin(origins ="*")
 @AllArgsConstructor
 public class ReservationRestController {
     IReservationService service;
