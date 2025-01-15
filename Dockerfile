@@ -2,7 +2,7 @@
 FROM eclipse-temurin:17-jre AS downloader
 
 # Define the Nexus repository and artifact details
-ARG NEXUS_URL=http://localhost:8081/repository/maven-releases/
+ARG NEXUS_URL=http://172.20.123.114:8081/repository/maven-releases/
 ARG GROUP_ID=tn.esprit
 ARG ARTIFACT_ID=Foyer
 ARG VERSION=1.1.1-RELEASE
