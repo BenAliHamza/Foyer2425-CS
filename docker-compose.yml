@@ -59,7 +59,7 @@ services:
 
   nexus:
     image: sonatype/nexus3:latest
-    container_name: nexus
+    container_name: nexus_new
     restart: always
     ports:
       - "8081:8081"
