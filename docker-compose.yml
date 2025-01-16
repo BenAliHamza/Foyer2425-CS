@@ -44,7 +44,7 @@ services:
 
   sonarqube:
     image: sonarqube:latest
-    container_name: sonarqube
+    container_name: sonarqube_new
     restart: always
     ports:
       - "9000:9000"
