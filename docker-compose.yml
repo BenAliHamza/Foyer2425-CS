@@ -23,7 +23,7 @@ services:
 
   mysql:
     image: mysql:8.0
-    container_name: mysql_new
+    container_name: mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -44,7 +44,7 @@ services:
 
   sonarqube:
     image: sonarqube:latest
-    container_name: sonarqube_new
+    container_name: sonarqube
     restart: always
     ports:
       - "9000:9000"
@@ -59,7 +59,7 @@ services:
 
   nexus:
     image: sonatype/nexus3:latest
-    container_name: nexus_new
+    container_name: nexus
     restart: always
     ports:
       - "8081:8081"
