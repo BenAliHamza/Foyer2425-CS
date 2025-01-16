@@ -10,7 +10,7 @@
     </parent>
     <groupId>tn.esprit.spring</groupId>
     <artifactId>Foyer</artifactId>
-    <version>1.4.64-RELEASE</version>
+    <version>1.4.65-RELEASE</version>
     <name>Foyer</name>
     <description>Foyer</description>
     <properties>
